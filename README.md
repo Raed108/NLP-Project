@@ -419,7 +419,7 @@ This section compares all models across four axes: performance (token-F1 / loss)
 | Model | Token F1 | Validation Loss |
 |-------|----------|-----------------|
 | Bi-LSTM Span | — | 5.2854 |
-| Original Transformer | 0.0486 | 5.7284 |
+| Original Transformer | 0.1123 | 5.7284 |
 | Dual-Encoder Transformer | 0.1828 | 5.6206 |
 
 ### Comparative Analysis
