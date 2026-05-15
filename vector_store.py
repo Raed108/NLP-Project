@@ -1,7 +1,7 @@
 from langchain_community.vectorstores import FAISS
 
-from retrieval import CustomEmbeddings
-from preprocessing import (
+from src.retrieval import CustomEmbeddings
+from src.preprocessing import (
     load_transcripts,
     chunk_documents
 )
