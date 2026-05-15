@@ -35,7 +35,7 @@ class RetrieverSystem:
             self.db = FAISS.from_texts([], self.embedding)
             self.db.save_local(db_path)
 
-    def retrieve(self, query, k=5):
+    def retrieve(self, query, k=10):
 
         docs = self.db.similarity_search_with_score(query, k=k)
 

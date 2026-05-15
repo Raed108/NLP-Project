@@ -12,14 +12,14 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 
 class LLMClient:
-    def __init__(self, model="gemini-2.5-flash"):
+    def __init__(self, model="google"):
         self.model_name = model
 
-        if model == "deepseek-v3.1":
+        if model == "deepseek-v4-flash":
             if not OPENROUTER_API_KEY:
-                raise ValueError("OPENROUTER_API_KEY is required for the deepseek-v3.1 model.")
+                raise ValueError("OPENROUTER_API_KEY is required for the deepseek-v4-flash model.")
             self.model = ChatOpenAI(
-                model="nex-agi/deepseek-v3.1-nex-n1:free",
+                model="deepseek/deepseek-v4-flash:free",
                 api_key=OPENROUTER_API_KEY,
                 base_url=OPENROUTER_BASE_URL,
             )

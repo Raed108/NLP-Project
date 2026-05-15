@@ -5,6 +5,9 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def normalize_arabic(text):
     
+    if text is None:
+        return ""
+
     # 1. Convert English letters to lowercase
     text = text.lower()
     
@@ -25,32 +28,56 @@ def normalize_arabic(text):
 
     return text
 
+def clean_transcript(text: str):
+
+    # Convert escaped newlines to real newlines
+    text = text.replace("\\n", "\n")
+
+    # Remove subtitle timestamps
+    # Example: 1722.027:
+    text = re.sub(r"\d+\.\d+:", "", text)
+
+    # Remove extra spaces
+    text = re.sub(r"\s+", " ", text)
+
+    return text.strip()
+
 
 
 def load_transcripts(folder_path):
+
     documents = []
 
-    for file_name in os.listdir(folder_path):
-        if file_name.endswith(".txt"):
+    # Walk through ALL directories recursively
+    for root, dirs, files in os.walk(folder_path):
 
-            path = os.path.join(folder_path, file_name)
+        for file_name in files:
 
-            with open(path, "r", encoding="utf-8") as f:
-                text = f.read()
+            if file_name.endswith(".txt"):
 
-            normalized = normalize_arabic(text)
+                path = os.path.join(root, file_name)
 
-            documents.append({
-                "episode": file_name,
-                "text": normalized
-            })
+                with open(path, "r", encoding="utf-8") as f:
+
+                    text = f.read()
+
+                # Clean transcript
+                text = clean_transcript(text)
+
+                # Normalize Arabic
+                normalized = normalize_arabic(text)
+
+                documents.append({
+                    "episode": file_name,
+                    "text": normalized
+                })
 
     return documents
 
 
 def chunk_documents(documents,
-                    chunk_size=500,
-                    chunk_overlap=100):
+                    chunk_size=200,
+                    chunk_overlap=50):
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,

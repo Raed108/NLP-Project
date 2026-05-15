@@ -2,7 +2,12 @@ import time
 
 from src.retrieval import RetrieverSystem
 from src.llm import LLMClient
+from src.memory import sliding_window_memory, summary_memory
 # from cache import SemanticCache
+from src.langchain_llm import get_langchain_llm
+import streamlit as st
+from src.preprocessing import normalize_arabic
+
 
 from src.prompts import STRICT_ARABIC_PROMPT
 
@@ -19,14 +24,27 @@ from src.ui import (
 )
 
 
-import streamlit as st
-
-
 setup_ui()
 
 retriever = RetrieverSystem()
 
 llm = LLMClient()
+
+if "langchain_llm" not in st.session_state:
+
+    st.session_state.langchain_llm = get_langchain_llm(
+        "deepseek-v4-flash"
+    )
+
+langchain_llm = st.session_state.langchain_llm
+
+if "memory" not in st.session_state:
+
+    st.session_state.memory = summary_memory(
+        langchain_llm
+    )
+
+memory = st.session_state.memory
 
 # cache = SemanticCache(
 #     threshold=0.85
@@ -46,7 +64,9 @@ for msg in st.session_state.messages:
     )
 
 
-query = user_input()
+query = user_input()    
+
+normalized_query = normalize_arabic(query)
 
 if query:
 
@@ -56,6 +76,8 @@ if query:
     })
 
     display_response("user", query)
+
+    memory.chat_memory.add_user_message(query)
 
     start = time.time()
 
@@ -71,14 +93,27 @@ if query:
 
     # else:
 
-    docs = retriever.retrieve(query)
+    docs = retriever.retrieve(normalized_query)
+    
     display_chunks(docs)
+
     context = format_context(docs)
+
+    chat_history = memory.load_memory_variables({})
+
+    history_text = chat_history["history"]
+
+
     prompt = STRICT_ARABIC_PROMPT.format(
         context=context,
-        question=query
+        question=query,
+        history_text=history_text
     )
+
     response = llm.generate(prompt)
+
+    memory.chat_memory.add_ai_message(response)
+
     # cache.add_to_cache(
     #     query,
     #     response

@@ -19,6 +19,9 @@ STRICT_ARABIC_PROMPT = """
 
 لا تخترع معلومات.
 
+تاريخ المحادثة:
+{history_text}
+
 السياق:
 {context}
 
