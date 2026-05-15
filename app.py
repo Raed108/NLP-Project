@@ -2,6 +2,7 @@ import time
 
 from src.retrieval import RetrieverSystem
 from src.llm import LLMClient
+# from cache import SemanticCache
 
 from src.prompts import STRICT_ARABIC_PROMPT
 
@@ -26,6 +27,10 @@ setup_ui()
 retriever = RetrieverSystem()
 
 llm = LLMClient()
+
+# cache = SemanticCache(
+#     threshold=0.85
+# )
 
 
 if "messages" not in st.session_state:
@@ -54,6 +59,18 @@ if query:
 
     start = time.time()
 
+    # cache_result = cache.search_cache(query)
+
+    # if cache_result["hit"]:
+
+    #     response = cache_result["response"]
+
+    #     st.sidebar.success(
+    #         f"Cache Hit ({cache_result['similarity']:.2f})"
+    #     )
+
+    # else:
+
     docs = retriever.retrieve(query)
     display_chunks(docs)
     context = format_context(docs)
@@ -62,6 +79,10 @@ if query:
         question=query
     )
     response = llm.generate(prompt)
+    # cache.add_to_cache(
+    #     query,
+    #     response
+    # )
 
     latency = calculate_latency(start)
 
@@ -73,6 +94,10 @@ if query:
     st.sidebar.write(
         f"Latency: {latency:.2f}s"
     )
+
+    # st.sidebar.write(
+    #     f"Cache Hit Rate: {cache.hit_rate():.2f}"
+    # )
 
     st.session_state.messages.append({
         "role": "assistant",
