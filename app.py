@@ -28,7 +28,19 @@ setup_ui()
 
 retriever = RetrieverSystem()
 
-llm = LLMClient()
+# Model selector in sidebar
+MODEL_OPTIONS = [
+    "gemini-2.5-flash",
+    "deepseek-v4-flash",
+    "mistralai/devstral-2512",
+]
+
+if "selected_model" not in st.session_state:
+    st.session_state.selected_model = MODEL_OPTIONS[0]
+
+st.sidebar.selectbox("Model", MODEL_OPTIONS, index=MODEL_OPTIONS.index(st.session_state.selected_model), key="selected_model")
+
+llm = LLMClient(model=st.session_state.selected_model)
 
 if "langchain_llm" not in st.session_state:
 
@@ -110,7 +122,11 @@ if query:
         history_text=history_text
     )
 
-    response = llm.generate(prompt)
+    response, used_model = llm.generate(prompt)
+
+    # show fallback information if model used differs from selected
+    if used_model != "none" and used_model != st.session_state.selected_model:
+        st.sidebar.warning(f"Fell back to model: {used_model}")
 
     memory.chat_memory.add_ai_message(response)
 
