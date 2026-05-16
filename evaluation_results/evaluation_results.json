@@ -1,0 +1,221 @@
+{
+  "metadata": {
+    "num_queries": 5,
+    "models_evaluated": [
+      "gemini-2.5-flash",
+      "deepseek-v4-flash"
+    ],
+    "metrics": [
+      "rouge_l",
+      "bert_score",
+      "grounding_f1",
+      "embedding_cosine"
+    ],
+    "metric_justifications": {
+      "rouge_l": "Measures lexical overlap and fluency for text generation quality.",
+      "bert_score": "Measures semantic similarity with contextual embeddings for semantic correctness.",
+      "grounding_f1": "Measures how much of the answer is supported by retrieved context, i.e. faithfulness.",
+      "embedding_cosine": "Measures sentence-level semantic closeness between expected and generated answers; robust to paraphrasing when ROUGE is low."
+    }
+  },
+  "per_model_results": {
+    "gemini-2.5-flash": {
+      "attempted_queries": 5,
+      "successful_queries": 5,
+      "skipped_queries": 0,
+      "rouge_l_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bert_scores": [
+        0.6621521711349487,
+        0.6918768882751465,
+        0.6853192448616028,
+        0.681358277797699,
+        0.6480398774147034
+      ],
+      "grounding_f1_scores": [
+        0.0,
+        0.0,
+        0.11570247933884296,
+        0.018867924528301886,
+        0.277992277992278
+      ],
+      "embedding_cosine_scores": [
+        0.22870964773657856,
+        0.33123525050125724,
+        0.19854717979006872,
+        0.132771592037201,
+        0.35846049230492505
+      ],
+      "samples": [
+        {
+          "question": "ما الحدث الذي جعل أورسون ويلز مشهورًا قبل دخوله السينما؟",
+          "expected_answer": "تمثيلية إذاعية عن غزو فضائي",
+          "response": "لا أملك معلومات كافية للإجابة.",
+          "used_model": "gemini-2.5-flash",
+          "attempts": 1,
+          "rouge_l": 0.0,
+          "bert_score": 0.6622,
+          "grounding_f1": 0.0,
+          "embedding_cosine": 0.2287,
+          "source": "citizen_kane_qa_dataset"
+        },
+        {
+          "question": "ما الرواية التي استندت إليها التمثيلية الإذاعية؟",
+          "expected_answer": "حرب العوالم",
+          "response": "لا أملك معلومات كافية للإجابة.",
+          "used_model": "gemini-2.5-flash",
+          "attempts": 1,
+          "rouge_l": 0.0,
+          "bert_score": 0.6919,
+          "grounding_f1": 0.0,
+          "embedding_cosine": 0.3312,
+          "source": "citizen_kane_qa_dataset"
+        },
+        {
+          "question": "لماذا اهتمت هوليوود بأورسون ويلز؟",
+          "expected_answer": "قدرته على التأثير في مشاعر الجمهور باستخدام الصوت",
+          "response": "اهتمت هوليوود بأورسون ويلز لأنها رأت فيه وفي فكرته فرصة، خاصة وأن التكرار كان يسبب الملل في السينما التي تعتمد على الإبهار، وكانت معظم الأفلام قوالب جاهزة.",
+          "used_model": "gemini-2.5-flash",
+          "attempts": 1,
+          "rouge_l": 0.0,
+          "bert_score": 0.6853,
+          "grounding_f1": 0.1157,
+          "embedding_cosine": 0.1985,
+          "source": "citizen_kane_qa_dataset"
+        },
+        {
+          "question": "ما طبيعة أفلام هوليوود قبل Citizen Kane؟",
+          "expected_answer": "قوالب تقليدية ونهايات سعيدة",
+          "response": "لا أملك معلومات كافية للإجابة.",
+          "used_model": "gemini-2.5-flash",
+          "attempts": 1,
+          "rouge_l": 0.0,
+          "bert_score": 0.6814,
+          "grounding_f1": 0.0189,
+          "embedding_cosine": 0.1328,
+          "source": "citizen_kane_qa_dataset"
+        },
+        {
+          "question": "لماذا تجنبت هوليوود التجريب؟",
+          "expected_answer": "رغبة الجمهور في التسلية بعد الكساد العظيم",
+          "response": "تجنبت هوليوود التجريب لأنها رأت أن ما كانت تفعله \"شغّال\"، وقالت: \"ما دامت شغاله، ما تلعبش فيها، خلينا في قصصنا، ومش هنجرب زي الناس دي.\"",
+          "used_model": "gemini-2.5-flash",
+          "attempts": 1,
+          "rouge_l": 0.0,
+          "bert_score": 0.648,
+          "grounding_f1": 0.278,
+          "embedding_cosine": 0.3585,
+          "source": "citizen_kane_qa_dataset"
+        }
+      ],
+      "mean_rouge_l": 0.0,
+      "mean_bert_score": 0.6737492918968201,
+      "mean_grounding_f1": 0.08251253637188458,
+      "mean_embedding_cosine": 0.24994483247400612
+    },
+    "deepseek-v4-flash": {
+      "attempted_queries": 5,
+      "successful_queries": 5,
+      "skipped_queries": 0,
+      "rouge_l_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bert_scores": [
+        0.6621521711349487,
+        0.6918768882751465,
+        0.7162281274795532,
+        0.681358277797699,
+        0.651275634765625
+      ],
+      "grounding_f1_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.018867924528301886,
+        0.09756097560975609
+      ],
+      "embedding_cosine_scores": [
+        0.22870964773657856,
+        0.33123525050125724,
+        0.0630999377129475,
+        0.132771592037201,
+        0.3040897477620245
+      ],
+      "samples": [
+        {
+          "question": "ما الحدث الذي جعل أورسون ويلز مشهورًا قبل دخوله السينما؟",
+          "expected_answer": "تمثيلية إذاعية عن غزو فضائي",
+          "response": "لا أملك معلومات كافية للإجابة.",
+          "used_model": "deepseek-v4-flash",
+          "attempts": 1,
+          "rouge_l": 0.0,
+          "bert_score": 0.6622,
+          "grounding_f1": 0.0,
+          "embedding_cosine": 0.2287,
+          "source": "citizen_kane_qa_dataset"
+        },
+        {
+          "question": "ما الرواية التي استندت إليها التمثيلية الإذاعية؟",
+          "expected_answer": "حرب العوالم",
+          "response": "لا أملك معلومات كافية للإجابة.",
+          "used_model": "deepseek-v4-flash",
+          "attempts": 1,
+          "rouge_l": 0.0,
+          "bert_score": 0.6919,
+          "grounding_f1": 0.0,
+          "embedding_cosine": 0.3312,
+          "source": "citizen_kane_qa_dataset"
+        },
+        {
+          "question": "لماذا اهتمت هوليوود بأورسون ويلز؟",
+          "expected_answer": "قدرته على التأثير في مشاعر الجمهور باستخدام الصوت",
+          "response": "لا أملك معلومات كافية للإجابة.",
+          "used_model": "deepseek-v4-flash",
+          "attempts": 1,
+          "rouge_l": 0.0,
+          "bert_score": 0.7162,
+          "grounding_f1": 0.0,
+          "embedding_cosine": 0.0631,
+          "source": "citizen_kane_qa_dataset"
+        },
+        {
+          "question": "ما طبيعة أفلام هوليوود قبل Citizen Kane؟",
+          "expected_answer": "قوالب تقليدية ونهايات سعيدة",
+          "response": "لا أملك معلومات كافية للإجابة.",
+          "used_model": "deepseek-v4-flash",
+          "attempts": 1,
+          "rouge_l": 0.0,
+          "bert_score": 0.6814,
+          "grounding_f1": 0.0189,
+          "embedding_cosine": 0.1328,
+          "source": "citizen_kane_qa_dataset"
+        },
+        {
+          "question": "لماذا تجنبت هوليوود التجريب؟",
+          "expected_answer": "رغبة الجمهور في التسلية بعد الكساد العظيم",
+          "response": "بناءً على السياق المقدم، تجنبت هوليوود التجريب لأن الاستوديوهات الكبيرة سيطرت على الإنتاج وجعلت معظم الأفلام قوالب جاهزة، مثل أفلام \"الويسترن\"، وفضلت البقاء على القصص الناجحة بدلاً من المغامرة بالتجارب الجديدة.",
+          "used_model": "deepseek-v4-flash",
+          "attempts": 1,
+          "rouge_l": 0.0,
+          "bert_score": 0.6513,
+          "grounding_f1": 0.0976,
+          "embedding_cosine": 0.3041,
+          "source": "citizen_kane_qa_dataset"
+        }
+      ],
+      "mean_rouge_l": 0.0,
+      "mean_bert_score": 0.6805782198905945,
+      "mean_grounding_f1": 0.023285780027611593,
+      "mean_embedding_cosine": 0.21198123515000175
+    }
+  }
+}
