@@ -31,9 +31,9 @@ class RetrieverSystem:
                 allow_dangerous_deserialization=True
             )
         else:
-            print("FAISS index not found, creating new DB...")
-            self.db = FAISS.from_texts([], self.embedding)
-            self.db.save_local(db_path)
+            raise FileNotFoundError(
+                "FAISS index not found. Run vector_store.py first."
+            )
 
     def retrieve(self, query, k=10):
 
