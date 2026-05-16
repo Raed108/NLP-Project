@@ -1,4 +1,5 @@
 # Retrieval-Augmented Generation (RAG) System
+
 ## Milestone 3: Arabic Multi-turn Conversational Chatbot
 
 **Project Overview:**
@@ -7,6 +8,7 @@ This is a multi-turn conversational RAG system that answers user questions stric
 ---
 
 ## Table of Contents
+
 1. [Project Architecture](#project-architecture)
 2. [Core Components](#core-components)
 3. [Data Pipeline](#data-pipeline)
@@ -47,18 +49,21 @@ User Query (Arabic/English)
 ## Core Components
 
 ### 1. **Embeddings & Vector Store** (`src/embeddings.py`, `src/retrieval.py`)
+
 - **Model:** `paraphrase-multilingual-MiniLM-L12-v2` (sentence-transformers)
 - **Rationale:** Lightweight, multilingual, preserves Arabic semantics and English tokens without lemmatization/stemming
 - **Vector DB:** FAISS (in-memory, loaded from `faiss_index/`)
 - **Index Rebuild:** Automatic on startup if missing
 
 ### 2. **Retrieval System** (`src/retrieval.py`)
+
 - **Retrieval Method:** Semantic similarity search with cosine distance
 - **Default k:** 5 top-matching documents
 - **Chunking:** Natural sentence-level + paragraph boundaries (no artificial chunk size imposed)
 - **Traceability:** Each retrieved document includes source episode metadata
 
 ### 3. **LLM Client** (`src/llm.py`)
+
 - **Primary Model:** `gemini-2.5-flash` (Google)
 - **Fallback Chain:**
   1. `gemini-2.5-flash`
@@ -71,34 +76,43 @@ User Query (Arabic/English)
 - **Returns:** `(response_text, used_model_name, total_attempts)`
 
 ### 4. **Prompt Engineering** (`src/prompts.py`)
+
 Three prompt templates with strict grounding:
 
 #### STRICT_ARABIC_PROMPT
+
 ```
 تحدث باللغة العربية فقط
 استخدم السياق المُعطى لك للإجابة
 إذا لم يكن السياق يحتوي على المعلومة، قل "لا توجد معلومات في السياق"
 ```
+
 **Goal:** Force Arabic responses, prevent hallucination
 
 #### STRICT_ENGLISH_PROMPT
+
 ```
-Answer in English only. Use the Arabic context as evidence. 
+Answer in English only. Use the Arabic context as evidence.
 Never mirror the context language in the final answer.
 ```
+
 **Goal:** English-only responses even with Arabic context
 
 #### MINIMAL_PROMPT (fallback)
+
 Basic context + question without extra constraints
 
 ### 5. **Conversation Memory** (`src/memory.py`)
+
 - **Strategy:** Sliding window (retains last 4 messages)
 - **Backend:** LangChain ConversationBufferWindowMemory
 - **Purpose:** Maintain multi-turn context without token overload
 - **Trade-off:** Short memory preserves coherence, prevents quota exhaustion
 
 ### 6. **Streamlit Interface** (`app.py`)
+
 **Features:**
+
 - Sidebar model selector (Gemini/DeepSeek/Mistral)
 - Chat input/output history
 - Language detection (Arabic/English) auto-detected
@@ -112,6 +126,7 @@ Basic context + question without extra constraints
 ## Data Pipeline
 
 ### Input Data
+
 - **Transcripts:** 13 Arabic episodes from MS1 (e.g., "Citizen Kane", "Octopus", "Samurai")
 - **QA Pairs:** 7 JSON datasets with 5 questions each per episode (35 total QA pairs)
 - **Format Preserved:**
@@ -119,16 +134,20 @@ Basic context + question without extra constraints
   - Dialectal variations and code-switching preserved
 
 ### FAISS Index Creation
+
 Run once to build the index:
+
 ```bash
 python -c "from src.retrieval import RetrieverSystem; r = RetrieverSystem(); print('Index ready')"
 ```
+
 - Reads all transcripts from `data/Transcripts/`
 - Embeds each paragraph via multilingual model
 - Saves index to `faiss_index/` for reuse
 - **Note:** First run takes ~30s due to HuggingFace model download
 
 ### Example Workflow
+
 ```
 Query: "من هو أورسون ويلز؟" (Arabic)
   ↓
@@ -148,11 +167,13 @@ Memory: Store (query, response) in sliding window
 ## Setup & Installation
 
 ### Prerequisites
+
 - Python 3.8+
 - pip
 - Virtual environment (recommended)
 
 ### Step 1: Clone & Install Dependencies
+
 ```bash
 cd NLP-Project
 python -m venv venv
@@ -163,12 +184,14 @@ pip install -r requirements.txt
 ### Step 2: Get API Keys
 
 **Gemini API (Google AI Studio)**
+
 1. Go to: https://aistudio.google.com/apikey
 2. Sign in with your Google account
 3. Click **Create API key**
 4. Copy the key
 
 **OpenRouter API (for DeepSeek/Mistral)**
+
 1. Go to: https://openrouter.ai/
 2. Sign in or create account
 3. Navigate to: https://openrouter.ai/keys
@@ -176,7 +199,9 @@ pip install -r requirements.txt
 5. Ensure account has credits (free tier may have limited requests)
 
 ### Step 3: Configure Environment
+
 Create or edit `.env` file in project root:
+
 ```env
 GOOGLE_API_KEY=your_gemini_api_key_here
 OPENROUTER_API_KEY=your_openrouter_api_key_here
@@ -185,9 +210,11 @@ OPENROUTER_API_KEY=your_openrouter_api_key_here
 **Example `.env.example` provided in repo for reference.**
 
 ### Step 4: Build FAISS Index
+
 ```bash
 python -c "from src.retrieval import RetrieverSystem; r = RetrieverSystem(); print('FAISS index created successfully')"
 ```
+
 Creates `faiss_index/` directory with embeddings of all transcripts.
 
 ---
@@ -195,20 +222,26 @@ Creates `faiss_index/` directory with embeddings of all transcripts.
 ## Running the Project
 
 ### Option 1: Streamlit Chatbot (Recommended)
+
 ```bash
 streamlit run app.py
 ```
+
 - Opens interactive chat interface at `http://localhost:8501`
 - Select model from sidebar
 - Type queries in Arabic or English
 - View conversation history and fallback info
 
 ### Option 2: Evaluation Module
+
 Run evaluation on 5 test queries (2 models, 4 metrics):
+
 ```bash
 python -m src.evaluation
 ```
+
 **Output:**
+
 - Console summary with aggregated scores
 - `evaluation_results/evaluation_results.json` — per-sample details
 - `evaluation_results/evaluation_summary.csv` — model comparison table
@@ -224,6 +257,7 @@ python -m src.evaluation
 ### Metrics (4 Total)
 
 #### 1. **ROUGE-L** (Text Generation Quality)
+
 - **Definition:** Longest common subsequence F-score between reference and generated answer
 - **Range:** 0.0 to 1.0
 - **Interpretation:**
@@ -234,6 +268,7 @@ python -m src.evaluation
 - **Recommendation:** Use alongside BERTScore/Embedding Cosine for interpretation
 
 #### 2. **BERTScore** (Semantic Correctness)
+
 - **Definition:** Token-level cosine similarity between contextual embeddings (using `bert-base-multilingual-cased`)
 - **Range:** 0.0 to 1.0
 - **Interpretation:**
@@ -243,6 +278,7 @@ python -m src.evaluation
 - **Advantage:** Tolerates phrasing variations better than ROUGE
 
 #### 3. **Grounding F1** (Faithfulness to Retrieved Context)
+
 - **Definition:** Harmonic mean of:
   - Precision: % of answer tokens found in retrieved context
   - Recall: % of context tokens appearing in answer
@@ -254,6 +290,7 @@ python -m src.evaluation
 - **Limitation:** Does not penalize irrelevant context overlap; needs manual review for hallucination
 
 #### 4. **Embedding Cosine** (Paraphrase-Robust Semantic Alignment)
+
 - **Definition:** Cosine similarity between sentence-level embeddings (multilingual MiniLM model)
 - **Range:** -1.0 to 1.0 (typically 0.0 to 1.0 for similar texts)
 - **Interpretation:**
@@ -266,13 +303,14 @@ python -m src.evaluation
 
 ### Metric Selection Justification
 
-| Requirement | Metric(s) | Rationale |
-|-------------|-----------|-----------|
-| Text Generation Quality | ROUGE-L + Embedding Cosine | ROUGE for exact match, Embedding Cosine for paraphrase tolerance |
-| Semantic Correctness | BERTScore + Embedding Cosine | BERT captures contextual semantics; Embedding Cosine is lightweight alternative |
-| Grounding to Context | Grounding F1 | Direct token overlap between answer and retrieved context |
+| Requirement             | Metric(s)                    | Rationale                                                                       |
+| ----------------------- | ---------------------------- | ------------------------------------------------------------------------------- |
+| Text Generation Quality | ROUGE-L + Embedding Cosine   | ROUGE for exact match, Embedding Cosine for paraphrase tolerance                |
+| Semantic Correctness    | BERTScore + Embedding Cosine | BERT captures contextual semantics; Embedding Cosine is lightweight alternative |
+| Grounding to Context    | Grounding F1                 | Direct token overlap between answer and retrieved context                       |
 
 ### Expected Results
+
 - **ROUGE-L:** Often ~0.0 because LLMs generate abstractive answers (different wording from reference)
 - **BERTScore:** ~0.65–0.70 (good semantic match despite different phrasing)
 - **Grounding F1:** ~0.05–0.15 (low because LLMs synthesize beyond direct context tokens)
@@ -285,27 +323,32 @@ python -m src.evaluation
 ## System Features
 
 ### 1. **Language Detection**
+
 - Checks Unicode ranges for Arabic vs Latin characters
 - Selects appropriate prompt template (STRICT_ARABIC_PROMPT vs STRICT_ENGLISH_PROMPT)
 - Enables code-switching support
 
 ### 2. **Robust Error Handling**
+
 - **API Failures:** Automatic fallback to next model in chain
 - **Quota Exhaustion:** Fast-fail detection (429, "ResourceExhausted" strings)
 - **Network Timeouts:** Exponential backoff (1s, 2s, 4s)
 - **Empty Responses:** Graceful degradation with warning message
 
 ### 3. **Multi-turn Conversation**
+
 - Sliding window memory (4 messages = 2 user-assistant pairs)
 - Reuses conversation context in next LLM call
 - Prevents memory overflow while maintaining coherence
 
 ### 4. **Out-of-Domain Detection** (Future Enhancement)
+
 - Currently: All queries passed to retrieval (no explicit OOD filtering)
 - Recommended: Cosine similarity threshold on retrieved documents
 - If max similarity < threshold → return "Query outside available knowledge"
 
 ### 5. **Attempt Tracking**
+
 - Displays number of LLM attempts (retries) in sidebar
 - Shows which model was ultimately used
 - Useful for debugging rate-limiting issues
@@ -316,15 +359,16 @@ python -m src.evaluation
 
 ### Models Evaluated
 
-| Model | Provider | Free Tier Limit | Latency | Quality | Best For |
-|-------|----------|-----------------|---------|---------|----------|
-| **gemini-2.5-flash** | Google AI | 20 req/day | 1–2s | High | Primary; code-switching |
-| **deepseek-v4-flash** | OpenRouter | Varies | 2–3s | High | Fallback; handles Arabic well |
-| **mistralai/devstral-2512** | OpenRouter | Varies | 2–3s | Medium | Tertiary fallback |
+| Model                       | Provider   | Free Tier Limit | Latency | Quality | Best For                      |
+| --------------------------- | ---------- | --------------- | ------- | ------- | ----------------------------- |
+| **gemini-2.5-flash**        | Google AI  | 20 req/day      | 1–2s    | High    | Primary; code-switching       |
+| **deepseek-v4-flash**       | OpenRouter | Varies          | 2–3s    | High    | Fallback; handles Arabic well |
+| **mistralai/devstral-2512** | OpenRouter | Varies          | 2–3s    | Medium  | Tertiary fallback             |
 
 ### Evaluation Results (5 queries)
 
 **gemini-2.5-flash (1 successful, 4 quota-exhausted):**
+
 ```
 Completed:    1/5
 ROUGE-L:      0.0000
@@ -332,9 +376,11 @@ BERTScore:    0.6622
 Grounding F1: 0.0000
 Emb.Cosine:   0.75+ (estimate)
 ```
+
 **Note:** Free tier quota (20 req/day) exhausted after first request.
 
 **deepseek-v4-flash (4 successful, 1 rate-limited):**
+
 ```
 Completed:    4/5
 ROUGE-L:      0.0000
@@ -342,9 +388,11 @@ BERTScore:    0.6817
 Grounding F1: 0.0516
 Emb.Cosine:   0.72+ (estimate)
 ```
+
 **Note:** Rate limits less restrictive than Gemini free tier.
 
 ### Recommendation
+
 - **For Production:** Use fresh API keys and account each month for quota reset
 - **Fallback Strategy:** Prioritize DeepSeek for reliability (higher rate limits)
 - **Cost:** All models free-tier compatible; no paid API usage required
@@ -354,6 +402,7 @@ Emb.Cosine:   0.72+ (estimate)
 ## Usage Scenarios
 
 ### Scenario 1: Arabic Historical Question
+
 ```
 User: "من هو أورسون ويلز وماذا أنجز في السينما؟"
 (Who is Orson Welles and what did he achieve in cinema?)
@@ -362,13 +411,14 @@ System:
 1. Detects language: Arabic
 2. Retrieves: 5 paragraphs from "Citizen Kane" episode
 3. Selects: STRICT_ARABIC_PROMPT
-4. Generates: 
-   "أورسون ويلز هو مخرج وممثل أمريكي اشتهر بفيلم 
+4. Generates:
+   "أورسون ويلز هو مخرج وممثل أمريكي اشتهر بفيلم
     Citizen Kane الذي غيّر مسار السينما..."
 5. Memory: Stores (query, response) for multi-turn context
 ```
 
 ### Scenario 2: English Query with Arabic Context
+
 ```
 User: "What is the main theme of the Octopus episode?"
 
@@ -383,6 +433,7 @@ System:
 ```
 
 ### Scenario 3: Fallback Scenario (Gemini Quota Exhausted)
+
 ```
 User: [Any query after 20 requests in a day]
 
@@ -395,6 +446,7 @@ System:
 ```
 
 ### Scenario 4: Multi-turn Conversation
+
 ```
 User Turn 1: "من هو تشارلز فوستر كين؟"
 System Response: "[Answer about character]"
@@ -415,41 +467,48 @@ System:
 ## Design Justifications
 
 ### 1. **Why Multilingual Embeddings?**
+
 - Project requirement: Preserve Arabic semantics + English tokens
 - `paraphrase-multilingual-MiniLM-L12-v2`: Lightweight, trained on 50+ languages
 - Alternative rejected: Arabic-only models (exclude English tokens)
 - No lemmatization/stemming: Preserve natural text + dialectal variation
 
 ### 2. **Why FAISS?**
+
 - Fast semantic search (in-memory, no network latency)
 - Persists to disk for quick reloads
 - Sufficient for 13 episodes (~50KB embeddings)
 - Alternative: Cloud vector DB (higher cost, latency)
 
 ### 3. **Why Sliding Window Memory?**
+
 - Full history → token exhaustion + higher cost
 - Summary memory → information loss
 - Sliding window (4 messages) → balance coherence + efficiency
 - Tunable: Can extend to 6–10 messages for longer conversations
 
 ### 4. **Why Strict Prompts + Language Detection?**
+
 - Problem: LLMs bias toward input language (Arabic context → Arabic response even if English requested)
 - Solution: STRICT_ENGLISH_PROMPT with explicit instruction
 - Validation: Manual review shows improved English-only compliance
 
 ### 5. **Why Fallback Chain?**
+
 - Primary (Gemini): Best quality but strict quota
 - Secondary (DeepSeek): Good quality, higher rate limits
 - Tertiary (Mistral): Worst quality, used only if others fail
 - Exponential backoff: Respects rate limits, avoids spamming API
 
 ### 6. **Why Four Metrics?**
+
 - **ROUGE-L:** Required by assignment; captures exact match
 - **BERTScore:** Captures semantic similarity; handles paraphrasing
 - **Grounding F1:** Directly measures RAG objective (faithfulness)
 - **Embedding Cosine:** Robust alternative to ROUGE for abstractive QA
 
 ### 7. **Why No Lemmatization/Stemming?**
+
 - Requirement: Preserve dialectal variation (e.g., "المصيب" vs "المصابة")
 - Requirement: Preserve code-switching (e.g., "Citizen Kane" within Arabic text)
 - Over-normalization → Loss of meaning and intent
@@ -500,21 +559,28 @@ NLP-Project/
 ## Troubleshooting
 
 ### Issue: "FAISS index not found"
+
 **Solution:**
+
 ```bash
 python -c "from src.retrieval import RetrieverSystem; r = RetrieverSystem()"
 ```
+
 This will create the index automatically.
 
 ### Issue: "No module named 'bert_score'"
+
 **Solution:**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ### Issue: "429 Too Many Requests" (Gemini)
+
 **Cause:** Free-tier quota exhausted (20 requests/day)
 **Solution:**
+
 1. Wait 24 hours for quota reset, OR
 2. Create new Google account with fresh API key, OR
 3. Switch to paid Gemini API
@@ -522,13 +588,16 @@ pip install -r requirements.txt
 **During Evaluation:** System automatically falls back to DeepSeek (higher rate limits)
 
 ### Issue: "Connection timeout"
+
 **Cause:** Network issue or API endpoint down
 **Solution:**
+
 1. Check internet connection
 2. Verify API keys in `.env`
 3. Retry manually; exponential backoff applies
 
 ### Issue: Streamlit app slow on first run
+
 **Cause:** First-time embedding model download from HuggingFace
 **Solution:** Initial run takes ~30s. Subsequent runs are fast (<2s).
 
@@ -538,25 +607,26 @@ pip install -r requirements.txt
 
 ### Milestone 3 Checklist
 
-| Requirement | Status | Evidence |
-|-------------|--------|----------|
-| **2.1 Data Usage** | ✅ | 13 episodes, 35 QA pairs for eval, no training |
-| **2.2 Text Representation** | ✅ | No lemmatization/stemming in `preprocessing.py` (identity function) |
-| **2.3 Embedding & Vector Store** | ✅ | Multilingual model + FAISS in `retrieval.py` |
-| **2.4 Chunking Strategy** | ✅ | Sentence-level + paragraph boundaries, traceable to source |
-| **2.5 Multi-turn Chatbot** | ✅ | LangChain ConversationBufferWindowMemory in `memory.py` |
-| **2.6 Prompt Engineering** | ✅ | STRICT_ARABIC_PROMPT, STRICT_ENGLISH_PROMPT, MINIMAL_PROMPT in `prompts.py` |
-| **2.7 OOD Detection** | ⏳ | Future: Similarity threshold on retrieved docs |
-| **2.8 Robustness** | ✅ | Fallback chain, exponential backoff, fast-fail quota detection in `llm.py` |
-| **2.9 LLM Requirements** | ✅ | Gemini 2.5 Flash + DeepSeek (OpenRouter), free-tier only |
-| **2.10 Evaluation** | ✅ | 2 models (Gemini, DeepSeek), 4 metrics (ROUGE, BERT, Grounding, Embedding) |
-| **2.11 Interface** | ✅ | Streamlit chatbot with history, model selector, fallback warnings |
+| Requirement                      | Status | Evidence                                                                    |
+| -------------------------------- | ------ | --------------------------------------------------------------------------- |
+| **2.1 Data Usage**               | ✅     | 13 episodes, 35 QA pairs for eval, no training                              |
+| **2.2 Text Representation**      | ✅     | No lemmatization/stemming in `preprocessing.py` (identity function)         |
+| **2.3 Embedding & Vector Store** | ✅     | Multilingual model + FAISS in `retrieval.py`                                |
+| **2.4 Chunking Strategy**        | ✅     | Sentence-level + paragraph boundaries, traceable to source                  |
+| **2.5 Multi-turn Chatbot**       | ✅     | LangChain ConversationBufferWindowMemory in `memory.py`                     |
+| **2.6 Prompt Engineering**       | ✅     | STRICT_ARABIC_PROMPT, STRICT_ENGLISH_PROMPT, MINIMAL_PROMPT in `prompts.py` |
+| **2.7 OOD Detection**            | ⏳     | Future: Similarity threshold on retrieved docs                              |
+| **2.8 Robustness**               | ✅     | Fallback chain, exponential backoff, fast-fail quota detection in `llm.py`  |
+| **2.9 LLM Requirements**         | ✅     | Gemini 2.5 Flash + DeepSeek (OpenRouter), free-tier only                    |
+| **2.10 Evaluation**              | ✅     | 2 models (Gemini, DeepSeek), 4 metrics (ROUGE, BERT, Grounding, Embedding)  |
+| **2.11 Interface**               | ✅     | Streamlit chatbot with history, model selector, fallback warnings           |
 
 ---
 
 ## Contact & Support
 
 For issues or questions:
+
 1. Check [Troubleshooting](#troubleshooting) section above
 2. Review console logs for error details
 3. Verify `.env` configuration
