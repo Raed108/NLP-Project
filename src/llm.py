@@ -66,7 +66,7 @@ class LLMClient:
             )
             self.model_name = "gemini-2.5-flash"
 
-    def generate(self, prompt: str, max_retries: int = 2, enable_fallback: bool = True) -> Tuple[str, str]:
+    def generate(self, prompt: str, max_retries: int = 2, enable_fallback: bool = True) -> Tuple[str, str, int]:
         """
         Generate a response for `prompt`.
 
@@ -78,11 +78,13 @@ class LLMClient:
         """
         # Try primary model with controlled retries
         last_exc = None
+        attempts_total = 0
         for attempt in range(max_retries + 1):
+            attempts_total += 1
             try:
                 resp = self.model.invoke(prompt)
                 content = getattr(resp, "content", None) or str(resp)
-                return content, self.model_name
+                return content, self.model_name, attempts_total
             except Exception as e:
                 last_exc = e
                 err_txt = str(e)
@@ -102,15 +104,16 @@ class LLMClient:
             for fallback_model in FALLBACK_CHAIN:
                 if fallback_model == self.model_name:
                     continue
+                attempts_total += 1
                 try:
                     self._initialize_model(fallback_model)
                     resp = self.model.invoke(prompt)
                     content = getattr(resp, "content", None) or str(resp)
-                    return content, self.model_name
+                    return content, self.model_name, attempts_total
                 except Exception as e:
                     logger.warning(f"Fallback {fallback_model} failed: {e}")
                     last_exc = e
 
         # All attempts failed — do not raise; return a friendly message
         logger.error(f"All LLM attempts failed. Last error: {last_exc}")
-        return (f"⚠️ All models are currently unavailable. Last error: {str(last_exc)}", "none")
+        return (f"⚠️ All models are currently unavailable. Last error: {str(last_exc)}", "none", attempts_total)

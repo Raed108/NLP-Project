@@ -9,7 +9,7 @@ import streamlit as st
 from src.preprocessing import normalize_arabic
 
 
-from src.prompts import STRICT_ARABIC_PROMPT
+from src.prompts import STRICT_ARABIC_PROMPT, STRICT_ENGLISH_PROMPT
 
 from src.utils import (
     format_context,
@@ -114,19 +114,42 @@ if query:
     chat_history = memory.load_memory_variables({})
 
     history_text = chat_history["history"]
+    context = format_context(docs)
 
+    # language detection (simple heuristic): prefer English-only prompts
+    def detect_language(text: str) -> str:
+        arabic_count = sum(1 for ch in text if '\u0600' <= ch <= '\u06FF' or '\u0750' <= ch <= '\u077F' or '\u08A0' <= ch <= '\u08FF' or '\uFB50' <= ch <= '\uFDFF' or '\uFE70' <= ch <= '\uFEFF')
+        latin_count = sum(1 for ch in text if ('a' <= ch.lower() <= 'z'))
+        if latin_count > 0 and arabic_count == 0:
+            return 'en'
+        if arabic_count > 0 and latin_count == 0:
+            return 'ar'
+        return 'mixed'
 
-    prompt = STRICT_ARABIC_PROMPT.format(
-        context=context,
-        question=query,
-        history_text=history_text
-    )
+    lang = detect_language(query)
 
-    response, used_model = llm.generate(prompt)
+    if lang == 'en':
+        prompt = STRICT_ENGLISH_PROMPT.format(
+            context=context, 
+            question=query, 
+            history_text=history_text
+        )
+    else:
+        prompt = STRICT_ARABIC_PROMPT.format(
+            context=context,
+            question=query,
+            history_text=history_text
+        )
+
+    response, used_model, attempts = llm.generate(prompt)
 
     # show fallback information if model used differs from selected
     if used_model != "none" and used_model != st.session_state.selected_model:
         st.sidebar.warning(f"Fell back to model: {used_model}")
+
+    # show retry/attempt count in the sidebar
+    if attempts and attempts > 1:
+        st.sidebar.info(f"LLM attempts: {attempts}")
 
     memory.chat_memory.add_ai_message(response)
 

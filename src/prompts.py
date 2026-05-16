@@ -29,16 +29,23 @@ STRICT_ARABIC_PROMPT = """
 {question}
 """
 
-
+# edited the english prompt so it enforces english reposnses
 STRICT_ENGLISH_PROMPT = """
 You are a grounded AI assistant.
 
 Answer ONLY from the provided context.
 
+answer in English only,
+use the Arabic context as evidence,
+mentally translate the needed facts,
+
 If the answer does not exist in the context say:
 "I do not have enough information."
 
 Do not hallucinate.
+
+Conversation history:
+{history_text}
 
 Context:
 {context}
