@@ -252,6 +252,38 @@ python -m src.evaluation
 
 ---
 
+## Caching: how to test cache behavior
+
+1. Start the Streamlit app in a shell (so session env is used):
+
+```powershell
+streamlit run app.py
+```
+
+2. In the UI, ask the same question twice (exact same text).
+
+- First time: the system will compute embeddings and call the LLM; the sidebar will not show a `Cache Hit` message.
+- Second time: the cache should return a hit and the sidebar will show `Cache Hit (similarity)` and the response will be instantaneous.
+
+3. To force easier cache hits for paraphrases, temporarily lower the threshold in a running session (PowerShell):
+
+```powershell
+#$env:PYTHONSTARTUP not required; instead run a short script
+python - <<'PY'
+from src.cache import SemanticCache
+c = SemanticCache(threshold=0.5)
+print('Created cache with threshold=0.5')
+PY
+```
+
+4. To verify stats in the UI, look at the sidebar values:
+
+- `Cache Hit Rate: X.XX`
+- `Saved LLM Calls: N`
+- `Cache Size: M`
+
+5. To simulate a cold-start / empty cache, restart Streamlit (stop and re-run `streamlit run app.py`).
+
 ## Evaluation Framework
 
 ### Metrics (4 Total)
@@ -334,6 +366,28 @@ python -m src.evaluation
 - **Quota Exhaustion:** Fast-fail detection (429, "ResourceExhausted" strings)
 - **Network Timeouts:** Exponential backoff (1s, 2s, 4s)
 - **Empty Responses:** Graceful degradation with warning message
+
+### 3. **Caching (Semantic Cache)**
+
+- **Module:** `src/cache.py` (`SemanticCache`)
+- **Purpose:** Avoid repeated LLM calls for semantically identical queries by storing question embeddings and associated responses.
+- **Embedding model:** Uses `ArabicEmbeddingModel` (same model as retrieval) to encode the query for cache lookups.
+- **Matching:** Cosine similarity between normalized embeddings. Default threshold: `0.85` (tunable).
+- **Eviction:** FIFO when `max_cache_size` (default 100) is reached.
+- **Stored fields:** `question`, `response`, `embedding`.
+- **Statistics exposed:** `hit_rate()` (cache hits / total requests), `saved_model_calls()` (how many calls were skipped because of cache), and `len(cache)` (cache size).
+- **Integration points:** The Streamlit flow checks the cache (`cache.search_cache(normalized_query)`) before calling the LLM. On a hit the UI shows a sidebar success: `Cache Hit (0.XX)` and the assistant response is returned from cache.
+
+Why it's useful:
+
+- Reduces API usage and cost during development and evaluation runs.
+- Speeds up repeat queries (local embedding compute + vector dot product vs remote LLM call).
+
+Limitations & notes:
+
+- The cache uses sentence-transformer embeddings, so paraphrases with low embedding similarity will not hit unless you lower the threshold.
+- Cache keys are the original question string; identical strings are deduplicated at insert.
+- Cache is memory-resident and not persisted to disk in the current implementation.
 
 ### 3. **Multi-turn Conversation**
 
